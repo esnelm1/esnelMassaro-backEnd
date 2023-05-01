@@ -57,8 +57,6 @@ public class PersonaController {
         return "La persona fue creada correctamente";
     }
     
-                
-
     
     @PutMapping("/update/{id}")
     public ResponseEntity<?> update(@PathVariable("id") int id, @RequestBody PersonaDto dtopersona){
