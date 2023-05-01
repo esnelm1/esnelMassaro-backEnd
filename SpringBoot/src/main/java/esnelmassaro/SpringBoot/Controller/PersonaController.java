@@ -68,9 +68,9 @@ public class PersonaController {
         if(personaService.existsByNombre(dtopersona.getNombre()) && personaService.getByNombre(dtopersona.getNombre()).get().getId() != id){
             return new ResponseEntity(new Mensaje("Ese nombre ya existe"), HttpStatus.BAD_REQUEST);
         }
-//        if(StringUtils.isBlank(dtopersona.getNombre())){
-//            return new ResponseEntity(new Mensaje("El campo no puede estar vacio"), HttpStatus.BAD_REQUEST);
-//        }
+        if(StringUtils.isBlank(dtopersona.getNombre())){
+            return new ResponseEntity(new Mensaje("El campo no puede estar vacio"), HttpStatus.BAD_REQUEST);
+        }
         
         Persona persona = personaService.getOne(id).get();
         
