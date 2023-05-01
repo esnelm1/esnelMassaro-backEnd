@@ -3,39 +3,44 @@ package esnelmassaro.SpringBoot.service;
 
 import esnelmassaro.SpringBoot.model.Persona;
 import esnelmassaro.SpringBoot.repository.PersonaRepository;
+import jakarta.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PersonaService implements IPersonaService {
+@Transactional
+public class PersonaService {
 
-    @Autowired // inyectar dependencia con interfaz
-    public PersonaRepository persoRepo;
+    @Autowired
+    PersonaRepository ipersonaRepository;
     
-    @Override
-    public List<Persona> verPersonas() {
-        return persoRepo.findAll();
-    }
-
-    @Override
-    public void crearPersona(Persona per) {
-        persoRepo.save(per);
-    }
-
-    @Override
-    public void borrarPersona(Long id) {
-        persoRepo.deleteById(id);
-    }
-
-    @Override
-    public Persona buscarPersona(Long id) {
-        return persoRepo.findById(id).orElse(null); //devuelve la persona, si no encuentra, devuelve null
-    }
-
-    @Override
-    public void guardarPersona(Persona per) {
-        persoRepo.save(per);
-    }
-    
+    public List<Persona> list(){
+         return ipersonaRepository.findAll();
+     }
+     
+     public Optional<Persona> getOne(int id){
+         return ipersonaRepository.findById(id);
+     }
+     
+     public Optional<Persona> getByNombre(String nombre){
+         return ipersonaRepository.findByNombre(nombre);
+     }
+     
+     public void save(Persona persona){
+         ipersonaRepository.save(persona);
+     }
+     
+     public void delete(int id){
+         ipersonaRepository.deleteById(id);
+     }
+     
+     public boolean existsById(int id){
+         return ipersonaRepository.existsById(id);
+     }
+     
+     public boolean existsByNombre(String nombre){
+         return ipersonaRepository.existsByNombre(nombre);
+     }
 }

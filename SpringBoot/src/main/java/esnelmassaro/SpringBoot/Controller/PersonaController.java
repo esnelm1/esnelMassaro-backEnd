@@ -1,10 +1,13 @@
-
 package esnelmassaro.SpringBoot.Controller;
 
+import esnelmassaro.SpringBoot.dto.PersonaDto;
 import esnelmassaro.SpringBoot.model.Persona;
-import esnelmassaro.SpringBoot.service.IPersonaService;
+import esnelmassaro.SpringBoot.service.PersonaService;
+import io.micrometer.common.util.StringUtils;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,77 +15,73 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:4200")
+@RequestMapping("/personas")
+@CrossOrigin(origins = {"http://localhost:4200"})
 public class PersonaController {
-    
-// List<Persona> listaPersonas = new ArrayList();    
-//    @GetMapping  ("/hello/{name}/{surname}") // cuando alguien entre en localhost:8080/hello se va a ejecutar el comando.
-//                                           // por defecto todos los navegadores usan el metodo get
-//                                           // para hacer un post si o si necestia una solicitud
-//    public String sayHello(@PathVariable String name, 
-//                                       @PathVariable String surname){
-//        return "Hello World!" + name + surname ;
-//    }   
-//   @GetMapping ("/bye") 
-//   public String sayBye(@RequestParam String name, // esto es mucho mejorrrr!!!
-//                                    @RequestParam String surname){
-//        return "Bye world!" + name + surname;
-//   }
-   
     @Autowired
+    PersonaService personaService;
     
-    private IPersonaService persoServ;
+    @GetMapping("/lista")
+    public ResponseEntity<List<Persona>> list(){
+        List<Persona> list = personaService.list();
+        return new ResponseEntity(list, HttpStatus.OK);
+    }
     
-   @PostMapping ("/new/persona")
-   public void agregarPersona (@RequestBody Persona pers) { //Request para pedirle al servidorle, Response es la respuesta
-       persoServ.crearPersona(pers);
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<Persona> getById(@PathVariable("id")int id){
+        if(!personaService.existsById(id)){
+            return new ResponseEntity(new Mensaje("No existe el ID"), HttpStatus.BAD_REQUEST);
+        }
+        
+        Persona persona = personaService.getOne(id).get();
+        return new ResponseEntity(persona, HttpStatus.OK);
+    }
+    
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> delete(@PathVariable("id") int id){
+        if(!personaService.existsById(id)){
+            return new ResponseEntity(new Mensaje("No existe el ID"), HttpStatus.NOT_FOUND);
+        }
+        personaService.delete(id);
+        return new ResponseEntity(new Mensaje("Persona eliminada"), HttpStatus.OK);
+    }
+    
+    
+    @PostMapping("/create")
+    public String createPersona (@RequestBody Persona per){
+        personaService.save(per);
+        return "La persona fue creada correctamente";
+    }
+    
+                
 
-//       listaPersonas.add(pers);
-   }
-   
-   @GetMapping("/view/personas")
-   @ResponseBody
-   public List<Persona> verPersonas (){
-       return persoServ.verPersonas();
-       
-//       return listaPersonas;
-   }
-   
-   @DeleteMapping("/delete/personas/{id}")
-   public void borrarPersona(@PathVariable Long id){
-        persoServ.borrarPersona(id);
-   }
-   
-       @PutMapping("edit/personas/{id}")
-    public Persona editPersona(@PathVariable Long id,
-                                                @RequestParam("nombre") String nuevoNombre,
-                                                @RequestParam("apellido") String nuevoApellido,
-                                                @RequestParam("img") String nuevoImg,
-                                                @RequestParam("aboutMe") String nuevoAboutMe
-    ){
-        Persona per =  persoServ.buscarPersona(id);
-        
-        per.setNombre(nuevoNombre);
-        per.setApellido(nuevoApellido);
-        per.setImg(nuevoImg);
-        per.setAboutMe(nuevoAboutMe);
-        
-        persoServ.guardarPersona(per);
-        return per;
-    }
     
-    @GetMapping("personas/traer/perfil")
-    public Persona findPersona(){
-    return persoServ.buscarPersona((long)1);
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> update(@PathVariable("id") int id, @RequestBody PersonaDto dtopersona){
+        if(!personaService.existsById(id)){
+            return new ResponseEntity(new Mensaje("No existe el ID"), HttpStatus.NOT_FOUND);
+        }
+        if(personaService.existsByNombre(dtopersona.getNombre()) && personaService.getByNombre(dtopersona.getNombre()).get().getId() != id){
+            return new ResponseEntity(new Mensaje("Ese nombre ya existe"), HttpStatus.BAD_REQUEST);
+        }
+//        if(StringUtils.isBlank(dtopersona.getNombre())){
+//            return new ResponseEntity(new Mensaje("El campo no puede estar vacio"), HttpStatus.BAD_REQUEST);
+//        }
+        
+        Persona persona = personaService.getOne(id).get();
+        
+        persona.setNombre(dtopersona.getNombre());
+        persona.setApellido(dtopersona.getApellido());
+        persona.setDescripcion(dtopersona.getDescripcion());
+        persona.setImg(dtopersona.getImg());
+        
+        personaService.save(persona);
+        
+        return new ResponseEntity(new Mensaje("Persona actualizada"), HttpStatus.OK);
     }
    
-   
-   
-   // Esto se puede hacer tambien con @PutMapping para moficaciones y @DeleteMapping para borrar el registro.
-   // Hay que hacer la modificiacion!!!
 }
